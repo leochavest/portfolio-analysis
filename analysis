@@ -1,82 +1,86 @@
-#importando pacotes
+# importando pacotes
 import numpy as np
 import seaborn as sns
 import pandas_datareader as pdr
 from datetime import datetime
-from datetime import date,timedelta
+from datetime import date, timedelta
 import sys
-
-#Usuario adiciona os tickers
-input_string=input("Quais tickers? (ex: PETR4, separados por espaço)")
-lst=input_string.split()
-tickers=[i+".SA" for i in lst]
-
-#Usuario coloca o peso das empresas no portfolio
-input_string=input("Quais os pesos de cada ativo em seu portfolio? (Separados por espaço)")
-lst=input_string.split()
-weights=np.array([float(i) for i in lst])
-
-#Verifica se o numero de pesos e papeis combinam
-if len(tickers) != len(weights):
-    sys.exit("O numero de tickers não confere com o número de pesos, favor começar novamente")
-
-yday=date.today()-timedelta(days=1)
-
-#Coletando e salvando dados dos fechamentos 
-stock = pdr.get_data_yahoo(symbols=tickers, start=datetime(2015, 1, 1), end=yday)['Adj Close']
-stock.to_excel("Desktop\stock Data to {}.xlsx".format(date.today()))
-
-#Criando uma matriz dos retornos percentuais 
-returns=stock.pct_change()
-#Removendo os valores vazios
-returns=returns.fillna(0)
-
-#Calculando a matriz de correlacao
-correl=returns.corr()
-#Criando um grafico da matriz de correlacao
-sns.heatmap(correl,linewidths=0.3,cmap="PiYG",vmin=-1,vmax=1)
-plt.title("Heatmap das Correlações",fontsize=20)
-plt.xlabel('Ações', fontsize = 15) # x-axis label with fontsize 15
-plt.ylabel('Ações', fontsize = 15) # y-axis label with fontsize 15
-plt.show()
-
-#calculando o retorno do portfolio
-returns['portfolio']=returns.dot(weights)
-#Calculando o retorno cumulativo do portfolio
-returns['Cumulative']=((1+returns['portfolio']).cumprod()-1)
-
-#Pegando dados do ibov para comparar
-ibov = pdr.get_data_yahoo(symbols="^BVSP", start=datetime(2015, 1, 1), end=yday)
-ibov=ibov.pct_change()
-#Adicionando o retorno cumulativo do ibov a matriz de retornos
-returns['IBOV']=((1+ibov['Adj Close']).cumprod()-1)
-#Criando um grafico do retorno cumulativo
-returns[['Cumulative','IBOV']].plot()
-
-#importando pacotes para uma analise mais detalhada
+import matplotlib.pyplot as plt
+# importando pacotes para uma analise mais detalhada
 from pypfopt.efficient_frontier import EfficientFrontier
 from pypfopt import risk_models
 from pypfopt import expected_returns
 
-#Calculando a media variancia da amostra
-mu=expected_returns.mean_historical_return(stock)
-sigma=risk_models.sample_cov(stock)
-#Retornando os valores
-print("Retorno Histórico Médio : {}" .format(mu))
-print("Variância e Covariância da amostra: {}".format(sigma))
+# Usuario adiciona os tickers
+input_string = input("Quais tickers? (ex: PETR4, separados por espaco)")
+lst = input_string.split()
+tickers = [i+".SA" for i in lst]
 
-#Definindo o modelo
-ef=EfficientFrontier(mu,sigma)
+# Usuario coloca o peso das empresas no portfolio
+input_string = input("Quais os pesos de cada ativo? (Separados por espaco)")
+lst = input_string.split()
+weights = np.array([float(i) for i in lst])
 
-#maximizando sharpe
+# Verifica se o numero de pesos e papeis combinam
+if len(tickers) != len(weights):
+    sys.exit("O numero de tickers nao confere com o numero de pesos")
+
+yday = date.today()-timedelta(days=1)
+# Coletando dados dos fechamentos
+stock = pdr.get_data_yahoo(symbols=tickers, start=datetime(2015, 1, 1),
+                           end=yday)['Adj Close']
+# Salvando os dados base
+stock.to_excel("stock Data to {}.xlsx".format(date.today()))
+# Criando uma matriz dos retornos percentuais
+returns = stock.pct_change()
+# Removendo os valores vazios
+returns = returns.fillna(0)
+
+# Calculando a matriz de correlacao
+correl = returns.corr()
+# Criando um grafico da matriz de correlacao
+sns.heatmap(correl,
+            linewidths=0.3,
+            cmap="PiYG",
+            vmin=-1,
+            vmax=1)
+plt.title("Heatmap das Correlações", fontsize=20)
+plt.xlabel('Ações', fontsize=15)
+plt.ylabel('Ações', fontsize=15)
+plt.show()
+# calculando o retorno do portfolio
+returns['portfolio'] = returns.dot(weights)
+# Calculando o retorno cumulativo do portfolio
+returns['Cumulative'] = ((1+returns['portfolio']).cumprod()-1)
+
+# Pegando dados do ibov para comparar
+ibov = pdr.get_data_yahoo(symbols="^BVSP", start=datetime(2015, 1, 1),
+                          end=yday)
+ibov = ibov.pct_change()
+# Adicionando o retorno cumulativo do ibov a matriz de retornos
+returns['IBOV'] = ((1+ibov['Adj Close']).cumprod()-1)
+# Criando um grafico do retorno cumulativo
+returns[['Cumulative', 'IBOV']].plot()
+
+# Calculando a media variancia da amostra
+mu = expected_returns.mean_historical_return(stock)
+sigma = risk_models.sample_cov(stock)
+# Retornando os valores
+print("Retorno Historico Medio : {}" .format(mu))
+print("Variancia e Covariancia da amostra: {}".format(sigma))
+
+# Definindo o modelo
+ef = EfficientFrontier(mu, sigma)
+
+# maximizando sharpe
 ef.max_sharpe()
 ef.portfolio_performance(verbose=True, risk_free_rate=0.1)
 
-#Maximiza para determinado risco
-target=0.0
-ef.efficient_risk(target,risk_free_rate=0.05)
+# Maximiza para determinado risco
+target = 0.0
+ef.efficient_risk(target, risk_free_rate=0.05)
 ef.portfolio_performance(verbose=True, risk_free_rate=0.1)
 
-#Calculando o portfolio otimo para dado retorno
+# Calculando o portfolio otimo para dado retorno
 ef.efficient_return(5.0)
 ef.portfolio_performance(verbose=True, risk_free_rate=0.1)
