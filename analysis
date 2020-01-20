@@ -35,6 +35,10 @@ returns=returns.fillna(0)
 correl=returns.corr()
 #Criando um grafico da matriz de correlacao
 sns.heatmap(correl,linewidths=0.3,cmap="PiYG",vmin=-1,vmax=1)
+plt.title("Heatmap das Correlações",fontsize=20)
+plt.xlabel('Ações', fontsize = 15) # x-axis label with fontsize 15
+plt.ylabel('Ações', fontsize = 15) # y-axis label with fontsize 15
+plt.show()
 
 #calculando o retorno do portfolio
 returns['portfolio']=returns.dot(weights)
