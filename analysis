@@ -1,3 +1,9 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Sun Jan 19 16:47:08 2020
+
+@author: ltsan
+"""
 # importando pacotes
 import numpy as np
 import seaborn as sns
@@ -12,18 +18,18 @@ from pypfopt import risk_models
 from pypfopt import expected_returns
 
 # Usuario adiciona os tickers
-input_string = input("Quais tickers? (ex: PETR4, separados por espaco)")
+input_string = input("Quais tickers? (ex: PETR4, separados por espaco)\n")
 lst = input_string.split()
 tickers = [i+".SA" for i in lst]
 
 # Usuario coloca o peso das empresas no portfolio
-input_string = input("Quais os pesos de cada ativo? (Separados por espaco)")
+input_string = input("Quais os pesos de cada ativo? (Separados por espaco)\n")
 lst = input_string.split()
 weights = np.array([float(i) for i in lst])
 
 # Verifica se o numero de pesos e papeis combinam
 if len(tickers) != len(weights):
-    sys.exit("O numero de tickers nao confere com o numero de pesos")
+    sys.exit("O numero de tickers nao confere com o numero de pesos\n")
 
 yday = date.today()-timedelta(days=1)
 # Coletando dados dos fechamentos
@@ -61,26 +67,32 @@ ibov = ibov.pct_change()
 returns['IBOV'] = ((1+ibov['Adj Close']).cumprod()-1)
 # Criando um grafico do retorno cumulativo
 returns[['Cumulative', 'IBOV']].plot()
-
+plt.title("Portfolio X IBOV")
+plt.show()
 # Calculando a media variancia da amostra
 mu = expected_returns.mean_historical_return(stock)
 sigma = risk_models.sample_cov(stock)
 # Retornando os valores
-print("Retorno Historico Medio : {}" .format(mu))
-print("Variancia e Covariancia da amostra: {}".format(sigma))
+print("Retorno Historico Medio : {} \n" .format(mu))
+print("Variancia e Covariancia da amostra: \n")
+print(sigma)
+print()
 
 # Definindo o modelo
 ef = EfficientFrontier(mu, sigma)
 
 # maximizando sharpe
 ef.max_sharpe()
+print("Pesos que maximizam Sharpe\n")
 ef.portfolio_performance(verbose=True, risk_free_rate=0.1)
-
+print()
 # Maximiza para determinado risco
 target = 0.0
 ef.efficient_risk(target, risk_free_rate=0.05)
+print("Pesos que maximizam para risco 0 \n")
 ef.portfolio_performance(verbose=True, risk_free_rate=0.1)
-
+print()
 # Calculando o portfolio otimo para dado retorno
 ef.efficient_return(5.0)
+print("Pesos que maximizam para um retorno \n")
 ef.portfolio_performance(verbose=True, risk_free_rate=0.1)
