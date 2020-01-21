@@ -1,9 +1,4 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Sun Jan 19 16:47:08 2020
 
-@author: ltsan
-"""
 # importando pacotes
 import numpy as np
 import seaborn as sns
@@ -82,17 +77,20 @@ print()
 ef = EfficientFrontier(mu, sigma)
 
 # maximizando sharpe
-ef.max_sharpe()
+x = ef.max_sharpe()
 print("Pesos que maximizam Sharpe\n")
+print(x ," \n")
 ef.portfolio_performance(verbose=True, risk_free_rate=0.1)
 print()
 # Maximiza para determinado risco
 target = 0.0
-ef.efficient_risk(target, risk_free_rate=0.05)
+x = ef.efficient_risk(target, risk_free_rate=0.05)
 print("Pesos que maximizam para risco 0 \n")
+print(x ,"\n")
 ef.portfolio_performance(verbose=True, risk_free_rate=0.1)
 print()
 # Calculando o portfolio otimo para dado retorno
 ef.efficient_return(5.0)
 print("Pesos que maximizam para um retorno \n")
+print(x ,"\n")
 ef.portfolio_performance(verbose=True, risk_free_rate=0.1)
